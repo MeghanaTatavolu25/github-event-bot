@@ -18,7 +18,8 @@ If activation is blocked, run once: `Set-ExecutionPolicy -Scope CurrentUser Remo
 
 ```powershell
 curl.exe http://127.0.0.1:8000/health      # {"status":"ok"}
-curl.exe http://127.0.0.1:8000/health/db   # {"status":"ok"} if MongoDB answers, else 503
+curl.exe http://127.0.0.1:8000/health/db   # {"database":"connected"} if MongoDB answers, else 503
+python -m pytest                           # unit tests
 ```
 
 Interactive docs: http://127.0.0.1:8000/docs
