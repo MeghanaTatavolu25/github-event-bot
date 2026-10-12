@@ -45,7 +45,8 @@ def callback(request: Request, code: str = "", state: str = ""):
         token = github.exchange_code(code)
         profile = github.get_user(token)
     except (github.GitHubError, httpx.HTTPError) as e:
-        log("login", "failed", detail=type(e).__name__)
+        # GitHub's own error code (for example incorrect_client_credentials) is safe to log; other errors: class only.
+        log("login", "failed", detail=str(e) if isinstance(e, github.GitHubError) else type(e).__name__)
         raise HTTPException(502, "Login failed: could not talk to GitHub.")
 
     user = users.find_one_and_update(

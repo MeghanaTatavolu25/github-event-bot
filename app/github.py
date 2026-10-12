@@ -20,7 +20,11 @@ def _api(method: str, path: str, token: str, **kwargs) -> httpx.Response:
     response = http.request(method, API + path, headers=headers, **kwargs)
     if response.status_code >= 400:
         try:
-            message = str(response.json().get("message", ""))[:200]
+            body = response.json()
+            message = str(body.get("message", ""))
+            # Validation errors explain themselves here, e.g. "Invalid url".
+            details = [str(e.get("message", "")) for e in body.get("errors", []) if isinstance(e, dict)]
+            message = "; ".join([message] + [d for d in details if d])[:200]
         except (ValueError, AttributeError):
             message = ""
         raise GitHubError(response.status_code, message)
