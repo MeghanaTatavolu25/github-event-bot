@@ -2,35 +2,30 @@
 {% block title %}Repos · GitHub Event Bot{% endblock %}
 {% block content %}
 <h1>Repos</h1>
-<form method="post" action="/repos/connect">
-  <label for="full_name">Repository (owner/name)</label>
+<p class="muted">Connect a repository to start receiving its events. You need admin access.</p>
+
+<form class="card" method="post" action="/repos/connect">
+  <label for="full_name" style="margin-top:0">Repository (owner/name)</label>
   <div class="row">
-    <input id="full_name" name="full_name" type="text" required placeholder="octocat/hello-world" autocomplete="off">
+    <input class="grow" id="full_name" name="full_name" type="text" required placeholder="octocat/hello-world" autocomplete="off">
     <button type="submit">Connect</button>
   </div>
+  <p class="muted small" style="margin-bottom:0">The bot adds a webhook for issues, pull requests and pushes. Disconnecting removes it.</p>
 </form>
-<p class="muted">You need admin access to the repo. The bot adds a webhook for issues, pull requests and pushes.</p>
 
 <h2>Connected</h2>
-{% if repos %}
-<table>
-  <thead><tr><th scope="col">Repository</th><th scope="col">Connected (UTC)</th><th scope="col"><span class="muted">Action</span></th></tr></thead>
-  <tbody>
-  {% for r in repos %}
-    <tr>
-      <td>{{ r.full_name }}</td>
-      <td>{{ r.connected_at.strftime('%Y-%m-%d %H:%M') }}</td>
-      <td>
-        <form method="post" action="/repos/disconnect">
-          <input type="hidden" name="full_name" value="{{ r.full_name }}">
-          <button class="danger" type="submit">Disconnect</button>
-        </form>
-      </td>
-    </tr>
-  {% endfor %}
-  </tbody>
-</table>
+{% for r in repos %}
+<div class="card row" style="align-items:center">
+  <div class="grow">
+    <strong>{{ r.full_name }}</strong><br>
+    <span class="muted small">Connected {{ r.connected_at.strftime('%Y-%m-%d %H:%M') }} UTC</span>
+  </div>
+  <form method="post" action="/repos/disconnect">
+    <input type="hidden" name="full_name" value="{{ r.full_name }}">
+    <button class="danger" type="submit">Disconnect</button>
+  </form>
+</div>
 {% else %}
-<p>No repos connected yet.</p>
-{% endif %}
+<div class="card empty muted">No repos connected yet.</div>
+{% endfor %}
 {% endblock %}

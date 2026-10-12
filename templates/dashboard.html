@@ -5,16 +5,23 @@
 <h1>Events</h1>
 <p class="muted">The latest 50 events. This page refreshes every 10 seconds.</p>
 
+<div class="stats" role="group" aria-label="Events by status">
+  <a class="stat" href="/dashboard"{% if not status %} aria-current="true"{% endif %}><span class="muted small">All</span><b>{{ counts.values() | sum }}</b></a>
+  {% for s in statuses %}
+  <a class="stat" href="/dashboard?status={{ s }}"{% if s == status %} aria-current="true"{% endif %}><span class="muted small">{{ s }}</span><b>{{ counts.get(s, 0) }}</b></a>
+  {% endfor %}
+</div>
+
 <form method="get" action="/dashboard" class="row">
   <div>
-    <label for="repo">Repo</label>
+    <label for="repo" style="margin-top:0">Repo</label>
     <select id="repo" name="repo">
       <option value="">All repos</option>
       {% for r in repos %}<option value="{{ r }}"{% if r == repo %} selected{% endif %}>{{ r }}</option>{% endfor %}
     </select>
   </div>
   <div>
-    <label for="status">Status</label>
+    <label for="status" style="margin-top:0">Status</label>
     <select id="status" name="status">
       <option value="">All statuses</option>
       {% for s in statuses %}<option value="{{ s }}"{% if s == status %} selected{% endif %}>{{ s }}</option>{% endfor %}
@@ -23,51 +30,42 @@
   <button type="submit">Filter</button>
 </form>
 
-{% if events %}
-<table>
-  <thead>
-    <tr>
-      <th scope="col">Time (UTC)</th><th scope="col">Repo</th><th scope="col">Event</th>
-      <th scope="col">Title</th><th scope="col">Status</th><th scope="col">Attempts</th>
-    </tr>
-  </thead>
-  <tbody>
-  {% for e in events %}
-    <tr>
-      <td>{{ e.received_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-      <td>{{ e.repo }}</td>
-      <td>{{ e.event }}{% if e.action %} / {{ e.action }}{% endif %}</td>
-      <td>{% if e.number %}#{{ e.number }} {% endif %}{{ e.title }}</td>
-      <td><span class="status {{ e.status }}">{{ e.status }}</span></td>
-      <td>{{ e.attempts }}</td>
-    </tr>
-    <tr class="detail">
-      <td colspan="6">
-        {% set taken = actions.get(e.delivery_id, []) %}
-        {% if taken %}
-          <ul>
-          {% for a in taken %}
-            <li>{{ a.type }} (rule: {{ a.rule_name }}) <span class="status {{ a.status }}">{{ a.status }}</span>: {{ a.detail }}</li>
-          {% endfor %}
-          </ul>
-        {% else %}
-          No actions taken.
-        {% endif %}
-        {% if e.last_error %}<div>Error: {{ e.last_error }}</div>{% endif %}
-        {% if e.status == 'failed' %}
-          <div>
-            {% if e.next_retry_at %}Next automatic retry at {{ e.next_retry_at.strftime('%H:%M:%S') }} UTC.{% else %}Gave up after {{ e.attempts }} attempts.{% endif %}
-            <form class="inline" method="post" action="/events/{{ e.delivery_id }}/retry">
-              <button class="plain" type="submit">Retry now</button>
-            </form>
-          </div>
-        {% endif %}
-      </td>
-    </tr>
-  {% endfor %}
-  </tbody>
-</table>
+{% for e in events %}
+<article class="card">
+  <div class="event-head">
+    <span class="pill {{ e.status }}">{{ e.status }}</span>
+    <strong>{{ e.repo }}</strong>
+    <span class="chip">{{ e.event }}{% if e.action %} / {{ e.action }}{% endif %}</span>
+    <span class="muted small when">{{ e.received_at.strftime('%Y-%m-%d %H:%M:%S') }} UTC · {{ e.attempts }} attempt{{ '' if e.attempts == 1 else 's' }}</span>
+  </div>
+  <div class="event-title">{% if e.number %}#{{ e.number }} {% endif %}{{ e.title }}</div>
+
+  {% set taken = actions.get(e.delivery_id, []) %}
+  {% if taken %}
+  <ul class="steps">
+    {% for a in taken %}
+    <li><span class="pill {{ a.status }}">{{ a.status }}</span> <span><b>{{ a.type }}</b> <span class="muted">(rule: {{ a.rule_name }})</span>: {{ a.detail }}</span></li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="muted small">No actions taken.</div>
+  {% endif %}
+
+  {% if e.last_error %}<div class="err small">Error: {{ e.last_error }}</div>{% endif %}
+  {% if e.status == 'failed' %}
+  <div class="btns">
+    <form class="inline" method="post" action="/events/{{ e.delivery_id }}/retry"><button class="plain" type="submit">Retry now</button></form>
+    <span class="muted small" style="align-self:center">
+      {% if e.next_retry_at %}Next automatic retry at {{ e.next_retry_at.strftime('%H:%M:%S') }} UTC.{% else %}Gave up after {{ e.attempts }} attempts.{% endif %}
+    </span>
+  </div>
+  {% endif %}
+</article>
 {% else %}
-<p>No events yet. <a href="/repos">Connect a repo</a>, then open an issue in it.</p>
-{% endif %}
+<div class="card empty">
+  <p><strong>No events yet.</strong></p>
+  <p class="muted">Connect a repo, then open an issue in it.</p>
+  <a class="button" href="/repos">Connect a repo</a>
+</div>
+{% endfor %}
 {% endblock %}

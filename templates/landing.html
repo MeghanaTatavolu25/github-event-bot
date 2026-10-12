@@ -1,6 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>GitHub Event Bot</h1>
-<p>Connect your repositories, set simple rules, and let the bot label issues, comment, and ping Slack when something happens.</p>
-<p><a class="button" href="/auth/login">Sign in with GitHub</a></p>
+<section class="hero">
+  <h1>GitHub Event Bot</h1>
+  <p class="muted">Connect a repository, write simple rules, and let the bot label issues, leave comments and ping Slack, with a log of everything it did.</p>
+  <a class="button" href="/auth/login">Sign in with GitHub</a>
+</section>
+<section class="steps-3" aria-label="How it works">
+  <div class="card"><b>1. Connect</b><br><span class="muted">Pick a repo you admin. The bot adds a webhook for issues, pull requests and pushes.</span></div>
+  <div class="card"><b>2. Set rules</b><br><span class="muted">For example: title contains “bug” → add the label <i>bug</i> and alert Slack.</span></div>
+  <div class="card"><b>3. Watch</b><br><span class="muted">The dashboard shows each event, what was done, failures, and automatic retries.</span></div>
+</section>
 {% endblock %}

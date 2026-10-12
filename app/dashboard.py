@@ -26,10 +26,17 @@ def dashboard(request: Request, repo: str = "", status: str = "", user: dict = D
     for action in actions.find({"delivery_id": {"$in": [e["delivery_id"] for e in latest]}}).sort("created_at", 1):
         taken[action["delivery_id"]].append(action)
 
+    # Counts for the clickable status tiles (all of the user's events, not just the latest 50).
+    totals = events.aggregate([
+        {"$match": {"user_id": user["_id"]}},
+        {"$group": {"_id": "$status", "n": {"$sum": 1}}},
+    ])
     return render(
         request,
         "dashboard.html",
         user,
+        page="dashboard",
+        counts={row["_id"]: row["n"] for row in totals},
         events=latest,
         actions=dict(taken),
         repos=events.distinct("repo", {"user_id": user["_id"]}),

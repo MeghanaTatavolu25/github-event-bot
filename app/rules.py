@@ -80,6 +80,7 @@ def rules_page(request: Request, user: dict = Depends(current_user)):
         request,
         "rules.html",
         user,
+        page="rules",
         rules=list(rules.find({"user_id": user["_id"]}).sort("created_at", 1)),
         repos=[r["full_name"] for r in repos.find({"user_id": user["_id"]})],
         events=EVENTS,

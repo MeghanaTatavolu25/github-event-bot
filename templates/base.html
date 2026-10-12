@@ -6,45 +6,115 @@
   <title>{% block title %}GitHub Event Bot{% endblock %}</title>
   {% block head %}{% endblock %}
   <style>
-    body { font: 16px/1.5 system-ui, sans-serif; max-width: 64rem; margin: 0 auto; padding: 1rem; color: #1f2328; background: #fff; }
-    nav { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; border-bottom: 1px solid #d0d7de; padding-bottom: .5rem; margin-bottom: 1rem; }
+    :root {
+      --bg: #f6f8fa; --card: #ffffff; --text: #1f2328; --muted: #59636e; --border: #d1d9e0;
+      --accent: #0969da; --primary: #1f6feb; --primary-text: #ffffff;
+      --green: #1a7f37; --green-bg: #dafbe1; --red: #cf222e; --red-bg: #ffebe9;
+      --amber: #8a5a00; --amber-bg: #fff8c5; --gray: #59636e; --gray-bg: #eaeef2; --info-bg: #ddf4ff;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0d1117; --card: #161b22; --text: #e6edf3; --muted: #9198a1; --border: #30363d;
+        --accent: #58a6ff; --primary: #2f81f7; --primary-text: #ffffff;
+        --green: #3fb950; --green-bg: #12261e; --red: #ff7b72; --red-bg: #2d1214;
+        --amber: #e3b341; --amber-bg: #2a2108; --gray: #9198a1; --gray-bg: #21262d; --info-bg: #0c2d4d;
+      }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--text); background: var(--bg); }
+    a { color: var(--accent); }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .wrap { max-width: 62rem; margin: 0 auto; padding: 0 1rem 3rem; }
+    h1 { font-size: 1.6rem; margin: 1.5rem 0 .25rem; }
+    h2 { font-size: 1.15rem; margin: 2rem 0 .6rem; }
+    .muted { color: var(--muted); }
+    .small { font-size: .875rem; }
+
+    /* top bar */
+    header { background: var(--card); border-bottom: 1px solid var(--border); }
+    nav { max-width: 62rem; margin: 0 auto; padding: .6rem 1rem; display: flex; gap: .25rem; align-items: center; flex-wrap: wrap; }
+    nav .brand { font-weight: 700; margin-right: .75rem; }
+    nav a.link { color: var(--text); text-decoration: none; padding: .35rem .7rem; border-radius: 6px; }
+    nav a.link:hover { background: var(--gray-bg); }
+    nav a.link[aria-current="page"] { background: var(--gray-bg); font-weight: 600; }
     nav .spacer { flex: 1; }
-    nav img { width: 24px; height: 24px; border-radius: 50%; vertical-align: middle; }
-    a { color: #0550ae; }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { text-align: left; padding: .4rem .5rem; border-bottom: 1px solid #d0d7de; vertical-align: top; }
-    th { background: #f6f8fa; }
-    label { display: block; font-weight: 600; margin-top: .6rem; }
-    input, select, button { font: inherit; padding: .3rem .5rem; }
-    input[type=text] { min-width: 16rem; }
-    .row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: end; }
-    .button, button { background: #1f6feb; color: #fff; border: 0; border-radius: 6px; padding: .45rem .9rem; cursor: pointer; text-decoration: none; display: inline-block; }
-    button.plain { background: #eaeef2; color: #1f2328; }
-    button.danger { background: #cf222e; }
-    .flash { background: #ddf4ff; border: 1px solid #54aeff; padding: .5rem .8rem; border-radius: 6px; }
-    .status { font-weight: 700; }
-    .done { color: #1a7f37; } .failed { color: #cf222e; } .processing, .received { color: #9a6700; } .ignored { color: #57606a; }
-    .detail td { color: #57606a; font-size: .9rem; border-bottom: 2px solid #d0d7de; }
-    .muted { color: #57606a; }
+    nav .me { display: flex; align-items: center; gap: .5rem; margin-right: .5rem; }
+    nav img { width: 26px; height: 26px; border-radius: 50%; }
+
+    /* building blocks */
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.1rem; margin: .75rem 0; }
+    .flash { background: var(--info-bg); border: 1px solid var(--accent); border-radius: 8px; padding: .6rem .9rem; margin: 1rem 0 0; }
+    .pill { display: inline-block; font-size: .78rem; font-weight: 700; letter-spacing: .02em; padding: .1rem .55rem; border-radius: 999px; text-transform: uppercase; }
+    .pill.done, .pill.success, .pill.enabled { color: var(--green); background: var(--green-bg); }
+    .pill.failed { color: var(--red); background: var(--red-bg); }
+    .pill.processing, .pill.received { color: var(--amber); background: var(--amber-bg); }
+    .pill.ignored, .pill.disabled { color: var(--gray); background: var(--gray-bg); }
+    .chip { display: inline-block; background: var(--gray-bg); border-radius: 6px; padding: .05rem .5rem; font-size: .875rem; margin: .1rem .25rem .1rem 0; }
+    button, .button { font: inherit; background: var(--primary); color: var(--primary-text); border: 0; border-radius: 6px; padding: .45rem .95rem; cursor: pointer; text-decoration: none; display: inline-block; }
+    button:hover, .button:hover { filter: brightness(1.08); }
+    button.plain { background: var(--gray-bg); color: var(--text); border: 1px solid var(--border); }
+    button.danger { background: var(--red-bg); color: var(--red); border: 1px solid var(--red); }
     form.inline { display: inline; }
+    label { display: block; font-weight: 600; margin: .8rem 0 .25rem; }
+    input, select { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: .4rem .6rem; max-width: 100%; }
+    input[type=text] { width: 100%; }
+    fieldset { border: 1px solid var(--border); border-radius: 8px; margin: 1rem 0 0; padding: .4rem .9rem .9rem; }
+    legend { font-weight: 600; padding: 0 .4rem; }
+    .row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: flex-end; }
+    .row > .grow { flex: 1; min-width: 12rem; }
+    .row input[type=text] { width: auto; }
+    .inputrow { display: grid; grid-template-columns: auto auto 1fr; gap: .5rem; margin-top: .5rem; }
+    .inputrow.two { grid-template-columns: auto 1fr; }
+    @media (max-width: 34rem) { .inputrow, .inputrow.two { grid-template-columns: 1fr; } }
+
+    /* dashboard */
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: .6rem; margin: 1rem 0; }
+    .stat { display: block; text-decoration: none; color: var(--text); background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: .6rem .9rem; }
+    .stat:hover { border-color: var(--accent); }
+    .stat[aria-current="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+    .stat b { display: block; font-size: 1.5rem; line-height: 1.2; }
+    .event-head { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+    .event-head .when { margin-left: auto; }
+    .event-title { font-weight: 600; margin: .35rem 0; overflow-wrap: anywhere; }
+    .steps { list-style: none; margin: .4rem 0 0; padding: 0; border-top: 1px solid var(--border); }
+    .steps li { padding: .4rem 0 0; font-size: .92rem; display: flex; gap: .5rem; flex-wrap: wrap; align-items: baseline; }
+    .err { color: var(--red); margin-top: .4rem; overflow-wrap: anywhere; }
+    .empty { text-align: center; padding: 2rem 1rem; }
+
+    /* rules */
+    .when-line { margin: .5rem 0 .2rem; }
+    .label { color: var(--muted); font-weight: 600; font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; margin-right: .4rem; }
+    .btns { margin-top: .6rem; display: flex; gap: .5rem; flex-wrap: wrap; }
+
+    /* landing */
+    .hero { text-align: center; padding: 3rem 1rem 1rem; }
+    .hero h1 { font-size: 2.1rem; }
+    .hero p { max-width: 36rem; margin: .5rem auto 1.5rem; font-size: 1.1rem; }
+    .steps-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: .75rem; margin-top: 2rem; }
   </style>
 </head>
 <body>
 {% if user %}
-<nav aria-label="Main">
-  <strong>GitHub Event Bot</strong>
-  <a href="/dashboard">Dashboard</a>
-  <a href="/repos">Repos</a>
-  <a href="/rules">Rules</a>
-  <span class="spacer"></span>
-  {% if user.avatar_url %}<img src="{{ user.avatar_url }}" alt="">{% endif %}
-  <span>{{ user.login }}</span>
-  <form class="inline" method="post" action="/auth/logout"><button class="plain" type="submit">Sign out</button></form>
-</nav>
+<header>
+  <nav aria-label="Main">
+    <span class="brand">GitHub Event Bot</span>
+    <a class="link" href="/dashboard"{% if page == 'dashboard' %} aria-current="page"{% endif %}>Dashboard</a>
+    <a class="link" href="/repos"{% if page == 'repos' %} aria-current="page"{% endif %}>Repos</a>
+    <a class="link" href="/rules"{% if page == 'rules' %} aria-current="page"{% endif %}>Rules</a>
+    <span class="spacer"></span>
+    <span class="me">
+      {% if user.avatar_url %}<img src="{{ user.avatar_url }}" alt="">{% endif %}
+      <span>{{ user.login }}</span>
+    </span>
+    <form class="inline" method="post" action="/auth/logout"><button class="plain" type="submit">Sign out</button></form>
+  </nav>
+</header>
 {% endif %}
+<div class="wrap">
 {% if flash %}<p class="flash" role="status">{{ flash }}</p>{% endif %}
 <main>
 {% block content %}{% endblock %}
 </main>
+</div>
 </body>
 </html>

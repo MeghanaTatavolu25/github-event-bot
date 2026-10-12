@@ -120,3 +120,14 @@ def test_retry_now_only_works_on_your_own_failed_events(client, alice, web):
 def test_retry_needs_login():
     anonymous = TestClient(app, follow_redirects=False)
     assert anonymous.post("/events/whatever/retry").status_code == 303
+
+
+def test_status_tiles_count_all_of_your_events_not_just_the_visible_ones(client, alice):
+    add_event(alice, "a", status="failed")
+    add_event(alice, "b", status="failed")
+    add_event(alice, "c", status="done")
+    add_event(make_user(github_id=2, login="bob"), "d", status="failed")  # not yours: not counted
+    page = client.get("/dashboard").text
+    assert '<span class="muted small">failed</span><b>2</b>' in page
+    assert '<span class="muted small">done</span><b>1</b>' in page
+    assert '<span class="muted small">All</span><b>3</b>' in page

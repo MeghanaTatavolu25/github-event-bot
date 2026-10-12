@@ -75,7 +75,7 @@ def disconnect_repo(user: dict, full_name: str) -> str:
 @router.get("/repos")
 def repos_page(request: Request, user: dict = Depends(current_user)):
     connected = list(repos.find({"user_id": user["_id"]}).sort("connected_at", 1))
-    return render(request, "repos.html", user, repos=connected)
+    return render(request, "repos.html", user, page="repos", repos=connected)
 
 
 @router.post("/repos/connect")

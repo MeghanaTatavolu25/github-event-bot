@@ -7,71 +7,61 @@
   apply to issues and pull requests; push events can only send Slack alerts.
 </p>
 
-{% if rules %}
-<table>
-  <thead>
-    <tr>
-      <th scope="col">Name</th><th scope="col">Repo</th><th scope="col">Event</th>
-      <th scope="col">Conditions (all must match)</th><th scope="col">Actions</th>
-      <th scope="col">State</th><th scope="col">Change</th>
-    </tr>
-  </thead>
-  <tbody>
-  {% for r in rules %}
-    <tr>
-      <td>{{ r.name }}</td>
-      <td>{{ r.repo }}</td>
-      <td>{{ r.event }}</td>
-      <td>
-        {% for c in r.conditions %}{{ c.field }} {{ c.op }} “{{ c.value }}”{% if not loop.last %}<br>{% endif %}
-        {% else %}<span class="muted">always</span>{% endfor %}
-      </td>
-      <td>
-        {% for a in r.actions %}{{ a.type }}{% if a.value %}: {{ a.value }}{% endif %}{% if not loop.last %}<br>{% endif %}{% endfor %}
-      </td>
-      <td><span class="status {{ 'done' if r.enabled else 'ignored' }}">{{ 'enabled' if r.enabled else 'disabled' }}</span></td>
-      <td>
-        <form class="inline" method="post" action="/rules/{{ r._id }}/enabled">
-          <input type="hidden" name="enabled" value="{{ 'false' if r.enabled else 'true' }}">
-          <button class="plain" type="submit">{{ 'Disable' if r.enabled else 'Enable' }}</button>
-        </form>
-        <form class="inline" method="post" action="/rules/{{ r._id }}/delete">
-          <button class="danger" type="submit">Delete</button>
-        </form>
-      </td>
-    </tr>
-  {% endfor %}
-  </tbody>
-</table>
+{% for r in rules %}
+<article class="card">
+  <div class="event-head">
+    <strong>{{ r.name }}</strong>
+    <span class="pill {{ 'enabled' if r.enabled else 'disabled' }}">{{ 'enabled' if r.enabled else 'disabled' }}</span>
+  </div>
+  <div class="when-line"><span class="label">When</span><span class="chip">{{ r.event }}</span> in <span class="chip">{{ 'all my repos' if r.repo == '*' else r.repo }}</span></div>
+  <div><span class="label">If</span>
+    {% for c in r.conditions %}<span class="chip">{{ c.field }} {{ c.op }} “{{ c.value }}”</span>{% else %}<span class="muted">always</span>{% endfor %}
+  </div>
+  <div><span class="label">Then</span>
+    {% for a in r.actions %}<span class="chip">{{ a.type }}{% if a.value %}: {{ a.value }}{% endif %}</span>{% endfor %}
+  </div>
+  <div class="btns">
+    <form class="inline" method="post" action="/rules/{{ r._id }}/enabled">
+      <input type="hidden" name="enabled" value="{{ 'false' if r.enabled else 'true' }}">
+      <button class="plain" type="submit">{{ 'Disable' if r.enabled else 'Enable' }}</button>
+    </form>
+    <form class="inline" method="post" action="/rules/{{ r._id }}/delete">
+      <button class="danger" type="submit">Delete</button>
+    </form>
+  </div>
+</article>
 {% else %}
-<p>No rules yet. Add one below.</p>
-{% endif %}
+<div class="card empty muted">No rules yet. Add one below.</div>
+{% endfor %}
 
 <h2>New rule</h2>
-<form method="post" action="/rules">
-  <label for="name">Name</label>
-  <input id="name" name="name" type="text" required maxlength="100">
-
-  <div class="row">
-    <div>
-      <label for="repo">Repo</label>
-      <select id="repo" name="repo">
-        <option value="*">All my repos</option>
-        {% for r in repos %}<option value="{{ r }}">{{ r }}</option>{% endfor %}
-      </select>
-    </div>
-    <div>
-      <label for="event">Event</label>
-      <select id="event" name="event">
-        {% for e in events %}<option value="{{ e }}">{{ e }}</option>{% endfor %}
-      </select>
-    </div>
-  </div>
+<form class="card" method="post" action="/rules">
+  <label for="name" style="margin-top:0">Name</label>
+  <input id="name" name="name" type="text" required maxlength="100" placeholder="Label and announce bugs">
 
   <fieldset>
-    <legend>Conditions (all must match; leave empty to match everything)</legend>
-    {% for i in (1, 2) %}
+    <legend>When</legend>
     <div class="row">
+      <div>
+        <label for="event">Event</label>
+        <select id="event" name="event">
+          {% for e in events %}<option value="{{ e }}">{{ e }}</option>{% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="repo">Repo</label>
+        <select id="repo" name="repo">
+          <option value="*">All my repos</option>
+          {% for r in repos %}<option value="{{ r }}">{{ r }}</option>{% endfor %}
+        </select>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>If (all must match; leave empty to match everything)</legend>
+    {% for i in (1, 2) %}
+    <div class="inputrow">
       <select name="cond_field" aria-label="Condition {{ i }} field">
         {% for f in fields %}<option value="{{ f }}">{{ f }}</option>{% endfor %}
       </select>
@@ -84,9 +74,9 @@
   </fieldset>
 
   <fieldset>
-    <legend>Actions</legend>
+    <legend>Then</legend>
     {% for i in (1, 2) %}
-    <div class="row">
+    <div class="inputrow two">
       <select name="act_type" aria-label="Action {{ i }} type">
         <option value="">(none)</option>
         {% for t in action_types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
@@ -96,6 +86,6 @@
     {% endfor %}
   </fieldset>
 
-  <p><button type="submit">Add rule</button></p>
+  <div class="btns"><button type="submit">Add rule</button></div>
 </form>
 {% endblock %}
