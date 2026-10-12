@@ -5,9 +5,10 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from starlette.middleware.sessions import SessionMiddleware
 
-from app import auth, config, dashboard, repos, rules, webhook
-from app.db import client, init_db
-from app.engine import retry_loop
+from app.core import config
+from app.routes import auth, dashboard, repos, rules, webhook
+from app.core.db import client, init_db
+from app.services.engine import retry_loop
 from app.web import templates
 
 # Fail at startup with a clear message instead of misbehaving later (a blank secret signs cookies with nothing).

@@ -4,8 +4,8 @@ import json
 
 from helpers import WEBHOOK_SECRET, connect_repo, issue_payload, make_user, post_webhook, push_payload
 
-from app import config
-from app.db import events
+from app.core import config
+from app.core.db import events
 
 
 def test_rejects_wrong_signature_and_stores_nothing(client):

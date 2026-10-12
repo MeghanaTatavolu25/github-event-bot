@@ -3,8 +3,8 @@ from collections import defaultdict
 from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from fastapi.responses import RedirectResponse
 
-from app.db import actions, events, utcnow
-from app.engine import process_event
+from app.core.db import actions, events, utcnow
+from app.services.engine import process_event
 from app.web import current_user, flash, render
 
 router = APIRouter()

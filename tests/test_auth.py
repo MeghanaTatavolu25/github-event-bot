@@ -2,7 +2,7 @@ from urllib.parse import parse_qs, urlparse
 
 from helpers import login_as
 
-from app.security import decrypt_token
+from app.core.security import decrypt_token
 
 
 def test_landing_page_has_sign_in_button(client):
@@ -58,8 +58,8 @@ def test_successful_login_stores_encrypted_token_and_opens_dashboard(client, mon
 
 
 def test_session_cookie_is_httponly_and_samesite_lax(client, monkeypatch):
-    monkeypatch.setattr("app.github.exchange_code", lambda code: "t")
-    monkeypatch.setattr("app.github.get_user", lambda t: {"id": 5, "login": "bob"})
+    monkeypatch.setattr("app.integrations.github.exchange_code", lambda code: "t")
+    monkeypatch.setattr("app.integrations.github.get_user", lambda t: {"id": 5, "login": "bob"})
     state = parse_qs(urlparse(client.get("/auth/login").headers["location"]).query)["state"][0]
     cookie = client.get("/auth/callback", params={"code": "abc", "state": state}).headers["set-cookie"].lower()
     assert "httponly" in cookie and "samesite=lax" in cookie

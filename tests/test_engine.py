@@ -5,8 +5,8 @@ import httpx
 import pytest
 from helpers import add_rule, connect_repo, issue_payload, make_user, post_webhook, push_payload
 
-from app.db import actions, events, utcnow
-from app.engine import (
+from app.core.db import actions, events, utcnow
+from app.services.engine import (
     BASE_DELAY,
     MAX_RETRIES,
     condition_holds,
@@ -15,7 +15,7 @@ from app.engine import (
     process_event,
     retry_due_events,
 )
-from app.webhook import save_event
+from app.routes.webhook import save_event
 
 
 @pytest.fixture

@@ -6,10 +6,11 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from pymongo import ReturnDocument
 
-from app import config, github
-from app.db import users, utcnow
-from app.logs import log
-from app.security import encrypt_token
+from app.core import config
+from app.integrations import github
+from app.core.db import users, utcnow
+from app.core.logs import log
+from app.core.security import encrypt_token
 
 router = APIRouter(prefix="/auth")
 

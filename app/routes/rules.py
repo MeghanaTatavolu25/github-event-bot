@@ -3,7 +3,7 @@ from bson.errors import InvalidId
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import RedirectResponse
 
-from app.db import repos, rules, utcnow
+from app.core.db import repos, rules, utcnow
 from app.web import current_user, flash, render
 
 router = APIRouter()

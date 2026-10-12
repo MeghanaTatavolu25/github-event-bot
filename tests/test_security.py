@@ -4,7 +4,7 @@ import hmac
 import pytest
 from cryptography.fernet import InvalidToken
 
-from app.security import decrypt_token, encrypt_token, verify_signature
+from app.core.security import decrypt_token, encrypt_token, verify_signature
 
 SECRET = "test-secret"
 BODY = b'{"action": "opened"}'

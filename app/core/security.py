@@ -4,7 +4,7 @@ import hmac
 
 from cryptography.fernet import Fernet
 
-from app import config
+from app.core import config
 
 
 def verify_signature(secret: str, body: bytes, signature_header: str | None) -> bool:

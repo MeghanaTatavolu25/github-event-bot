@@ -4,9 +4,9 @@ import json
 import uuid
 from urllib.parse import parse_qs, urlparse
 
-from app import github
-from app.db import repos, rules, users, utcnow
-from app.security import encrypt_token
+from app.integrations import github
+from app.core.db import repos, rules, users, utcnow
+from app.core.security import encrypt_token
 
 WEBHOOK_SECRET = "test-webhook-secret"
 

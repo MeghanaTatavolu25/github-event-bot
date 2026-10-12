@@ -4,10 +4,10 @@ from datetime import timedelta
 from fastapi.concurrency import run_in_threadpool
 from pymongo import ReturnDocument
 
-from app import github, slack
-from app.db import actions, events, rules, users, utcnow
-from app.logs import log
-from app.security import decrypt_token
+from app.integrations import github, slack
+from app.core.db import actions, events, rules, users, utcnow
+from app.core.logs import log
+from app.core.security import decrypt_token
 
 MAX_RETRIES = 5  # retries after the first try
 BASE_DELAY = 30  # seconds; doubles on every retry

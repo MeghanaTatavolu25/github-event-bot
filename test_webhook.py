@@ -6,7 +6,7 @@
     python test_webhook.py owner/name "A bug" --url https://github-event-bot-jeuz.onrender.com
 
 The repo must be connected on the /repos page first, or the app answers "ignored".
-The secret comes from GITHUB_WEBHOOK_SECRET (via app/config.py); only the HTTP result is printed.
+The secret comes from GITHUB_WEBHOOK_SECRET (via app/core/config.py); only the HTTP result is printed.
 """
 import argparse
 import hashlib
@@ -16,7 +16,7 @@ import uuid
 
 import httpx
 
-from app import config
+from app.core import config
 
 
 def build_payload(event: str, repo: str, title: str, number: int) -> dict:

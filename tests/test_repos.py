@@ -5,8 +5,8 @@ import pytest
 from fastapi.testclient import TestClient
 from helpers import connect_repo, login_as, make_user
 
-from app import github
-from app.db import repos, rules
+from app.integrations import github
+from app.core.db import repos, rules
 from app.main import app
 
 

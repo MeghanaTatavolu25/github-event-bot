@@ -1,6 +1,6 @@
 import httpx
 
-from app import config
+from app.core import config
 
 http = httpx.Client(timeout=10)  # rule 8: every outbound call has a 10-second timeout
 

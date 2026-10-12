@@ -2,9 +2,9 @@ import pytest
 from fastapi.testclient import TestClient
 from helpers import add_rule, connect_repo, login_as, make_user
 
-from app.db import rules
+from app.core.db import rules
 from app.main import app
-from app.rules import build_rule
+from app.routes.rules import build_rule
 
 
 @pytest.fixture

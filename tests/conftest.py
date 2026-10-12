@@ -18,11 +18,12 @@ import mongomock  # noqa: E402
 import pymongo  # noqa: E402
 import pytest  # noqa: E402
 
-pymongo.MongoClient = mongomock.MongoClient  # app.db does `from pymongo import MongoClient`
+pymongo.MongoClient = mongomock.MongoClient  # app.core.db does `from pymongo import MongoClient`
 
 from fastapi.testclient import TestClient  # noqa: E402
 
-from app import db, github, slack  # noqa: E402
+from app.core import db  # noqa: E402
+from app.integrations import github, slack  # noqa: E402
 from app.main import app  # noqa: E402
 
 

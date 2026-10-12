@@ -28,21 +28,33 @@ Browser ──▶ Sign in with GitHub ──▶ /dashboard  (events, actions, er
                                     /rules      (create, enable/disable, delete)
 ```
 
+The code is in layers. A file imports from its own layer or from layers **below** it in this list, never from
+above, so you can read any layer without knowing the ones above it:
+
+```
+app/
+  main.py            wiring only: session cookie, routers, startup, /health, /health/db
+  routes/            web endpoints, one file per feature   (web.py next to main.py: helpers for the routes)
+  services/          the work: rule matching, actions, retries
+  integrations/      outgoing calls to other services
+  core/              foundations: settings, database, security, logging
+```
+
 | File | Job |
 |---|---|
-| `app/config.py` | The only place that reads environment variables |
-| `app/main.py` | Wires the app together: session cookie, routers, startup, `/health`, `/health/db` |
-| `app/auth.py` | GitHub login: `/auth/login`, `/auth/callback`, `POST /auth/logout` |
-| `app/web.py` | Shared page helpers: templates, "who is logged in", one-time messages |
-| `app/repos.py` | Connect / disconnect repos (creates and deletes the GitHub webhook) |
-| `app/webhook.py` | Receives webhooks: verify, filter, save |
-| `app/engine.py` | Rule matching, actions, retries, the retry loop |
-| `app/rules.py` | Rules page and the form validation |
-| `app/dashboard.py` | Dashboard and "Retry now" |
-| `app/github.py`, `app/slack.py` | The outgoing HTTP calls (10-second timeout each) |
-| `app/security.py` | Signature check, token encryption |
-| `app/db.py` | MongoDB collections and the unique indexes |
-| `app/logs.py` | One-line JSON logs |
+| `app/main.py` | Wires the app together; the entry point (`uvicorn app.main:app`) |
+| `app/web.py` | Shared page helpers used by the routes |
+| `app/routes/auth.py` | GitHub login: `/auth/login`, `/auth/callback`, `POST /auth/logout` |
+| `app/routes/repos.py` | Connect / disconnect repos (creates and deletes the GitHub webhook) |
+| `app/routes/webhook.py` | Receives webhooks: verify, filter, save |
+| `app/routes/rules.py` | Rules page and the form validation |
+| `app/routes/dashboard.py` | Dashboard and "Retry now" |
+| `app/services/engine.py` | Rule matching, actions, retries, the retry loop |
+| `app/integrations/github.py`, `app/integrations/slack.py` | The outgoing HTTP calls (10-second timeout each) |
+| `app/core/config.py` | The only place that reads environment variables |
+| `app/core/db.py` | MongoDB collections and the unique indexes |
+| `app/core/security.py` | Signature check, token encryption |
+| `app/core/logs.py` | One-line JSON logs |
 | `templates/` | Server-rendered pages (Jinja2, no JavaScript) |
 | `test_webhook.py` | Send a signed fake webhook to a running app |
 | `tests/` | Automated tests (no network, no real database) |
@@ -80,7 +92,7 @@ The app refuses to start if `SESSION_SECRET` is empty, `APP_URL` is malformed, o
 
 ## Environment variables
 
-Only `app/config.py` reads these. On Render, add them under *Environment*.
+Only `app/core/config.py` reads these. On Render, add them under *Environment*.
 
 | Name | What | Example |
 |---|---|---|

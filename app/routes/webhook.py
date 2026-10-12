@@ -5,11 +5,11 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
 from pymongo.errors import DuplicateKeyError, PyMongoError
 
-from app import config
-from app.db import events, repos, utcnow
-from app.engine import process_event
-from app.logs import log
-from app.security import verify_signature
+from app.core import config
+from app.core.db import events, repos, utcnow
+from app.services.engine import process_event
+from app.core.logs import log
+from app.core.security import verify_signature
 
 router = APIRouter()
 

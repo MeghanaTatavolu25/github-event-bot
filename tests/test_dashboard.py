@@ -4,10 +4,10 @@ import pytest
 from fastapi.testclient import TestClient
 from helpers import add_rule, connect_repo, issue_payload, login_as, make_user
 
-from app.db import actions, events, utcnow
-from app.engine import process_event
+from app.core.db import actions, events, utcnow
+from app.services.engine import process_event
 from app.main import app
-from app.webhook import save_event
+from app.routes.webhook import save_event
 
 
 @pytest.fixture

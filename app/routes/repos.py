@@ -6,11 +6,11 @@ from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
 from pymongo.errors import DuplicateKeyError
 
-from app import github
-from app.db import repos, utcnow
-from app.logs import log
-from app.rules import add_example_rule
-from app.security import decrypt_token
+from app.integrations import github
+from app.core.db import repos, utcnow
+from app.core.logs import log
+from app.routes.rules import add_example_rule
+from app.core.security import decrypt_token
 from app.web import current_user, flash, render
 
 router = APIRouter()

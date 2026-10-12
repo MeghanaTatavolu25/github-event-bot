@@ -4,7 +4,7 @@ from bson import ObjectId
 from fastapi import HTTPException, Request
 from fastapi.templating import Jinja2Templates
 
-from app.db import users
+from app.core.db import users
 
 # Jinja2Templates escapes HTML by default, which matters: issue titles are written by strangers.
 templates = Jinja2Templates(directory=Path(__file__).resolve().parent.parent / "templates")
