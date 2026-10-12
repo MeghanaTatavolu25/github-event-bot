@@ -10,15 +10,18 @@ from app.web import current_user, flash, render
 router = APIRouter()
 
 STATUSES = ["received", "processing", "done", "failed", "ignored"]
+EVENT_TYPES = ["issues", "pull_request", "push"]  # the events the webhook subscribes to
 
 
 @router.get("/dashboard")
-def dashboard(request: Request, repo: str = "", status: str = "", user: dict = Depends(current_user)):
+def dashboard(request: Request, repo: str = "", status: str = "", event: str = "", user: dict = Depends(current_user)):
     query = {"user_id": user["_id"]}  # every query is limited to the logged-in user's own data
     if repo:
         query["repo"] = repo
     if status in STATUSES:
         query["status"] = status
+    if event in EVENT_TYPES:
+        query["event"] = event
     # The payload can be large and the page does not show it, so leave it out.
     latest = list(events.find(query, {"payload": 0}).sort("received_at", -1).limit(50))
 
@@ -41,8 +44,10 @@ def dashboard(request: Request, repo: str = "", status: str = "", user: dict = D
         actions=dict(taken),
         repos=events.distinct("repo", {"user_id": user["_id"]}),
         statuses=STATUSES,
+        event_types=EVENT_TYPES,
         repo=repo,
         status=status,
+        event=event,
     )
 
 

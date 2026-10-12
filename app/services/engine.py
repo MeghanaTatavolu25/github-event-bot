@@ -14,6 +14,7 @@ BASE_DELAY = 30  # seconds; doubles on every retry
 LEASE = timedelta(minutes=5)  # how long a "processing" claim lasts if the server dies mid-work
 CHECK_EVERY = 15  # seconds between looks for events that are due
 UNFINISHED = ["received", "processing", "failed"]
+COLLABORATORS = {"OWNER", "MEMBER", "COLLABORATOR"}  # author_association values that mean "has access"
 
 
 # ---- Which rules apply? -------------------------------------------------------------------
@@ -60,6 +61,17 @@ def matching_rules(ev: dict) -> list:
 # ---- Doing the actions --------------------------------------------------------------------
 
 
+def is_outsider(ev: dict) -> bool:
+    """True when the issue/PR was opened by someone with no access to the repo."""
+    payload = ev["payload"]
+    item = payload.get("issue") or payload.get("pull_request")
+    if not item:
+        return False  # push: GitHub only lets people with write access push, so never an outsider
+    # GitHub fills this in on every issue/PR: OWNER, MEMBER, COLLABORATOR, CONTRIBUTOR, NONE, ...
+    # A missing value counts as an outsider, so we over-alert rather than miss a stranger.
+    return item.get("author_association") not in COLLABORATORS
+
+
 def slack_text(ev: dict, prefix: str) -> str:
     payload = ev["payload"]
     item = payload.get("issue") or payload.get("pull_request") or {}
@@ -77,6 +89,8 @@ def perform(ev: dict, user: dict, action: dict) -> str:
     """Do one action. Raises on failure; returns a short note on success."""
     kind, value = action["type"], action["value"]
     if kind == "slack":
+        if not is_outsider(ev):
+            return "skipped: sender is a collaborator"  # recorded as done, so a retry does not re-check
         slack.send(slack_text(ev, value))
         return "sent to Slack"
     token = decrypt_token(user["access_token_enc"])  # the repo owner's token

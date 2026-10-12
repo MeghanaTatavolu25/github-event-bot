@@ -72,6 +72,14 @@ def test_dashboard_filters_by_repo_and_status(client, alice):
     assert "in other repo" in only_other and "in demo, done" not in only_other
 
 
+def test_dashboard_filters_by_event_type(client, alice):
+    add_event(alice, "i", title="an issue")
+    add_event(alice, "p", title="a push", event="push", action=None)
+    page = client.get("/dashboard", params={"event": "push"}).text
+    assert "a push" in page and "an issue" not in page
+    assert '<option value="push" selected>' in page  # the dropdown remembers the choice
+
+
 def test_dashboard_shows_the_latest_50_newest_first(client, alice):
     start = utcnow() - timedelta(hours=1)
     for i in range(55):

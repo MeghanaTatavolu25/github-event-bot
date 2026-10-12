@@ -27,6 +27,13 @@
       {% for s in statuses %}<option value="{{ s }}"{% if s == status %} selected{% endif %}>{{ s }}</option>{% endfor %}
     </select>
   </div>
+  <div>
+    <label for="event" style="margin-top:0">Event type</label>
+    <select id="event" name="event">
+      <option value="">All event types</option>
+      {% for t in event_types %}<option value="{{ t }}"{% if t == event %} selected{% endif %}>{{ t }}</option>{% endfor %}
+    </select>
+  </div>
   <button type="submit">Filter</button>
 </form>
 

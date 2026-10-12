@@ -145,6 +145,19 @@ def test_matching_issue_gets_label_and_slack_alert(owner, web):
     assert sorted(a["status"] for a in actions.find({})) == ["success", "success"]
 
 
+def test_slack_alert_only_for_outsiders(owner, web):
+    add_rule(owner, conditions=[], actions=[{"type": "slack", "value": ""}])
+    for delivery, association, alerted in [("a", "COLLABORATOR", 0), ("b", "OWNER", 0), ("c", "NONE", 1), ("d", "CONTRIBUTOR", 1)]:
+        payload = issue_payload()
+        payload["issue"]["author_association"] = association
+        store(payload, delivery_id=delivery)
+        before = len(web.of("slack"))
+        process_event(delivery)
+        assert len(web.of("slack")) - before == alerted, association
+    assert events.find_one({"delivery_id": "a"})["status"] == "done"  # skipped is not a failure
+    assert "skipped" in actions.find_one({"delivery_id": "a"})["detail"]
+
+
 def test_post_comment_action(owner, web):
     add_rule(owner, actions=[{"type": "post_comment", "value": "Thanks, we will look."}])
     store(issue_payload(number=4))
@@ -154,12 +167,12 @@ def test_post_comment_action(owner, web):
     assert call["json"] == {"body": "Thanks, we will look."}
 
 
-def test_push_runs_slack_only(owner, web):
+def test_push_makes_no_calls(owner, web):
     add_rule(owner, event="any", conditions=[])  # has add_label + slack
     store(push_payload(message="fix typo"), event="push")
     process_event("d-1")
-    assert web.of("github") == []
-    assert "fix typo" in web.of("slack")[0]["json"]["text"]
+    assert web.of("github") == []  # no issue to label
+    assert web.of("slack") == []  # pushers have write access, so they are never outsiders
     assert events.find_one({})["status"] == "done"
 
 
