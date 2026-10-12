@@ -5,7 +5,7 @@ import uuid
 from urllib.parse import parse_qs, urlparse
 
 from app import github
-from app.db import repos, users
+from app.db import repos, rules, users, utcnow
 from app.security import encrypt_token
 
 WEBHOOK_SECRET = "test-webhook-secret"
@@ -69,3 +69,19 @@ def post_webhook(client, event, payload, delivery_id=None, secret=WEBHOOK_SECRET
         "X-Hub-Signature-256": "sha256=" + hmac.new(secret.encode(), body, hashlib.sha256).hexdigest(),
     }
     return client.post("/webhook/github", content=body, headers=headers)
+
+
+def add_rule(user, **overrides):
+    rule = {
+        "user_id": user["_id"],
+        "name": "bug rule",
+        "repo": "alice/demo",
+        "event": "issues",
+        "enabled": True,
+        "conditions": [{"field": "title", "op": "contains", "value": "bug"}],
+        "actions": [{"type": "add_label", "value": "bug"}, {"type": "slack", "value": "Alert"}],
+        "created_at": utcnow(),
+    }
+    rule.update(overrides)
+    rule["_id"] = rules.insert_one(rule).inserted_id
+    return rule

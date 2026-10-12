@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from pymongo.errors import PyMongoError
 from starlette.middleware.sessions import SessionMiddleware
 
-from app import auth, config, dashboard, repos, webhook
+from app import auth, config, dashboard, repos, rules, webhook
 from app.db import client, init_db
 from app.engine import retry_loop
 from app.logs import log
@@ -45,6 +45,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(dashboard.router)
 app.include_router(repos.router)
+app.include_router(rules.router)
 app.include_router(webhook.router)
 
 

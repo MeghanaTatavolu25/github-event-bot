@@ -3,10 +3,9 @@ from datetime import datetime, timedelta, timezone
 
 import httpx
 import pytest
-from helpers import connect_repo, issue_payload, make_user, post_webhook, push_payload
+from helpers import add_rule, connect_repo, issue_payload, make_user, post_webhook, push_payload
 
-from app import github, slack
-from app.db import actions, events, rules, utcnow
+from app.db import actions, events, utcnow
 from app.engine import (
     BASE_DELAY,
     MAX_RETRIES,
@@ -19,64 +18,11 @@ from app.engine import (
 from app.webhook import save_event
 
 
-class FakeWeb:
-    """Stands in for GitHub and Slack. Records every request; kinds listed in `failing` answer 500."""
-
-    def __init__(self):
-        self.calls = []
-        self.failing = set()
-        self.raise_for_slack = None
-
-    def handler(self, request):
-        kind = "slack" if request.url.host == "hooks.slack.test" else "github"
-        body = request.read()
-        self.calls.append({
-            "kind": kind,
-            "method": request.method,
-            "path": request.url.path,
-            "json": json.loads(body) if body else None,
-            "auth": request.headers.get("authorization"),
-        })
-        if kind == "slack" and self.raise_for_slack:
-            raise self.raise_for_slack
-        if kind in self.failing:
-            return httpx.Response(500, json={"message": "boom"})
-        return httpx.Response(200, json={})
-
-    def of(self, kind):
-        return [c for c in self.calls if c["kind"] == kind]
-
-
-@pytest.fixture
-def web(monkeypatch):
-    fake = FakeWeb()
-    client = httpx.Client(transport=httpx.MockTransport(fake.handler), timeout=10)
-    monkeypatch.setattr(github, "http", client)
-    monkeypatch.setattr(slack, "http", client)
-    return fake
-
-
 @pytest.fixture
 def owner():
     user = make_user()
     connect_repo(user)
     return user
-
-
-def add_rule(user, **overrides):
-    rule = {
-        "user_id": user["_id"],
-        "name": "bug rule",
-        "repo": "alice/demo",
-        "event": "issues",
-        "enabled": True,
-        "conditions": [{"field": "title", "op": "contains", "value": "bug"}],
-        "actions": [{"type": "add_label", "value": "bug"}, {"type": "slack", "value": "Alert"}],
-        "created_at": utcnow(),
-    }
-    rule.update(overrides)
-    rule["_id"] = rules.insert_one(rule).inserted_id
-    return rule
 
 
 def store(payload, event="issues", delivery_id="d-1"):
