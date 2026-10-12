@@ -114,7 +114,7 @@ def create_rule(
 
 
 @router.post("/rules/{rule_id}/enabled")
-def set_enabled(rule_id: str, request: Request, enabled: str = Form(...), user: dict = Depends(current_user)):
+def set_enabled(rule_id: str, enabled: str = Form(...), user: dict = Depends(current_user)):
     # Filtering by user_id means you can only change your own rules.
     rules.update_one({"_id": rule_object_id(rule_id), "user_id": user["_id"]}, {"$set": {"enabled": enabled == "true"}})
     return RedirectResponse("/rules", status_code=303)

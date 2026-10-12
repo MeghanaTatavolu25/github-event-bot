@@ -3,13 +3,11 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, RedirectResponse
-from pymongo.errors import PyMongoError
 from starlette.middleware.sessions import SessionMiddleware
 
 from app import auth, config, dashboard, repos, rules, webhook
 from app.db import client, init_db
 from app.engine import retry_loop
-from app.logs import log
 from app.web import templates
 
 # Fail at startup with a clear message instead of misbehaving later (a blank secret signs cookies with nothing).
@@ -21,11 +19,9 @@ if not config.APP_URL.startswith(("http://", "https://")):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Runs once when the app starts.
-    try:
-        init_db()
-    except PyMongoError:
-        log("startup", "db_error", detail="could not create indexes")
+    # Runs once when the app starts. If the indexes cannot be created we stop on purpose: without the
+    # unique indexes, duplicate deliveries and repeated actions would slip through unnoticed.
+    init_db()
     retrying = asyncio.create_task(retry_loop())  # also picks up events left over from before a restart
     yield
     retrying.cancel()

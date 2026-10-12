@@ -37,7 +37,7 @@
   <a href="/repos">Repos</a>
   <a href="/rules">Rules</a>
   <span class="spacer"></span>
-  <img src="{{ user.avatar_url }}" alt="">
+  {% if user.avatar_url %}<img src="{{ user.avatar_url }}" alt="">{% endif %}
   <span>{{ user.login }}</span>
   <form class="inline" method="post" action="/auth/logout"><button class="plain" type="submit">Sign out</button></form>
 </nav>
