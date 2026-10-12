@@ -51,7 +51,8 @@ def test_event_for_a_connected_repo_is_saved_for_its_owner(client):
     assert saved["user_id"] == owner["_id"]
     assert (saved["event"], saved["action"], saved["repo"]) == ("issues", "opened", "alice/demo")
     assert (saved["title"], saved["number"], saved["sender"]) == ("Login bug", 3, "reporter")
-    assert (saved["status"], saved["attempts"]) == ("received", 0)
+    # The repo has no rules, so the background task already finished with nothing to do.
+    assert (saved["status"], saved["attempts"]) == ("ignored", 1)
 
 
 def test_push_event_uses_the_commit_message_as_title(client):

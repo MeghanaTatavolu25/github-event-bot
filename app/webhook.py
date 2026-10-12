@@ -1,12 +1,13 @@
 import json
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, BackgroundTasks, Request
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
 from pymongo.errors import DuplicateKeyError, PyMongoError
 
 from app import config
 from app.db import events, repos, utcnow
+from app.engine import process_event
 from app.logs import log
 from app.security import verify_signature
 
@@ -62,7 +63,7 @@ def save_event(delivery_id: str, event: str, payload: dict) -> str:
 
 
 @router.post("/webhook/github")
-async def github_webhook(request: Request):
+async def github_webhook(request: Request, background: BackgroundTasks):
     # 1. Read the raw message exactly as it arrived: the signature covers these exact bytes.
     body = await request.body()
 
@@ -102,4 +103,6 @@ async def github_webhook(request: Request):
         return JSONResponse({"error": "temporarily unavailable"}, status_code=503)
 
     log("webhook", result, event, delivery_id, repo)
+    if result == "stored":
+        background.add_task(process_event, delivery_id)  # runs after we have replied to GitHub
     return {"status": result}

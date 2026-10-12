@@ -78,6 +78,15 @@ def create_hook(token: str, full_name: str) -> int:
         raise
 
 
+def add_label(token: str, full_name: str, number: int, label: str):
+    # Pull requests are issues too, so this one endpoint labels both.
+    _api("POST", f"/repos/{full_name}/issues/{number}/labels", token, json={"labels": [label]})
+
+
+def post_comment(token: str, full_name: str, number: int, text: str):
+    _api("POST", f"/repos/{full_name}/issues/{number}/comments", token, json={"body": text})
+
+
 def delete_hook(token: str, full_name: str, hook_id: int):
     try:
         _api("DELETE", f"/repos/{full_name}/hooks/{hook_id}", token)

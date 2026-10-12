@@ -1,3 +1,4 @@
+import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -7,6 +8,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app import auth, config, dashboard, repos, webhook
 from app.db import client, init_db
+from app.engine import retry_loop
 from app.logs import log
 from app.web import templates
 
@@ -24,7 +26,9 @@ async def lifespan(app: FastAPI):
         init_db()
     except PyMongoError:
         log("startup", "db_error", detail="could not create indexes")
+    retrying = asyncio.create_task(retry_loop())  # also picks up events left over from before a restart
     yield
+    retrying.cancel()
 
 
 app = FastAPI(title="GitHub Event Bot", lifespan=lifespan)
