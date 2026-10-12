@@ -6,4 +6,6 @@ python-dotenv
 jinja2
 itsdangerous
 python-multipart
+cryptography
 pytest
+mongomock

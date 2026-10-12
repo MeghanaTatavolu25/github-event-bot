@@ -5,15 +5,23 @@ from datetime import datetime, timezone
 
 from fastapi import FastAPI, Request
 from fastapi.concurrency import run_in_threadpool
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from pymongo.errors import DuplicateKeyError, PyMongoError
+from starlette.middleware.sessions import SessionMiddleware
 
-from app import config
+from app import auth, config, dashboard
 from app.db import client, events, init_db
 from app.security import verify_signature
+from app.web import templates
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("bot")
+
+# Fail at startup with a clear message instead of misbehaving later (a blank secret signs cookies with nothing).
+if not config.SESSION_SECRET:
+    raise RuntimeError("SESSION_SECRET is not set")
+if not config.APP_URL.startswith(("http://", "https://")):
+    raise RuntimeError("APP_URL must start with http:// or https:// (check .env for a typo)")
 
 SUPPORTED_EVENTS = {"issues", "pull_request", "push"}
 
@@ -29,6 +37,25 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="GitHub Event Bot", lifespan=lifespan)
+# The session cookie is signed, HttpOnly (Starlette default) and SameSite=Lax, which also stops
+# other websites from making the browser send our POST forms. Secure only when served over https.
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=config.SESSION_SECRET,
+    session_cookie="session",
+    max_age=14 * 24 * 3600,
+    same_site="lax",
+    https_only=config.APP_URL.startswith("https://"),
+)
+app.include_router(auth.router)
+app.include_router(dashboard.router)
+
+
+@app.get("/")
+def landing(request: Request):
+    if request.session.get("user_id"):
+        return RedirectResponse("/dashboard")
+    return templates.TemplateResponse(request, "landing.html", {"user": None, "flash": None})
 
 
 @app.get("/health")

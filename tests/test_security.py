@@ -1,7 +1,10 @@
 import hashlib
 import hmac
 
-from app.security import verify_signature
+import pytest
+from cryptography.fernet import InvalidToken
+
+from app.security import decrypt_token, encrypt_token, verify_signature
 
 SECRET = "test-secret"
 BODY = b'{"action": "opened"}'
@@ -42,3 +45,14 @@ def test_fails_closed_when_secret_is_empty():
 def test_rejects_non_ascii_header_instead_of_crashing():
     # A hostile header must give "invalid" (401), not an exception (500).
     assert not verify_signature(SECRET, BODY, "sha256=é")
+
+
+def test_token_encryption_round_trip_hides_the_token():
+    encrypted = encrypt_token("gho_abc123")
+    assert "gho_abc123" not in encrypted
+    assert decrypt_token(encrypted) == "gho_abc123"
+
+
+def test_tampered_encrypted_token_is_rejected():
+    with pytest.raises(InvalidToken):
+        decrypt_token(encrypt_token("gho_abc123")[:-4] + "AAAA")

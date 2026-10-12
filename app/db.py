@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from pymongo import MongoClient
 from app import config
 
@@ -5,8 +7,13 @@ client = MongoClient(config.MONGODB_URI, serverSelectionTimeoutMS=5000)
 db = client["github_bot"]
 users = db["users"]
 repos = db["repos"]
+rules = db["rules"]
 events = db["events"]
 actions = db["actions"]
+
+
+def utcnow() -> datetime:
+    return datetime.now(timezone.utc)
 
 
 def init_db():

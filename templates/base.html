@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}GitHub Event Bot{% endblock %}</title>
+  {% block head %}{% endblock %}
+  <style>
+    body { font: 16px/1.5 system-ui, sans-serif; max-width: 64rem; margin: 0 auto; padding: 1rem; color: #1f2328; background: #fff; }
+    nav { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; border-bottom: 1px solid #d0d7de; padding-bottom: .5rem; margin-bottom: 1rem; }
+    nav .spacer { flex: 1; }
+    nav img { width: 24px; height: 24px; border-radius: 50%; vertical-align: middle; }
+    a { color: #0550ae; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { text-align: left; padding: .4rem .5rem; border-bottom: 1px solid #d0d7de; vertical-align: top; }
+    th { background: #f6f8fa; }
+    label { display: block; font-weight: 600; margin-top: .6rem; }
+    input, select, button { font: inherit; padding: .3rem .5rem; }
+    input[type=text] { min-width: 16rem; }
+    .row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: end; }
+    .button, button { background: #1f6feb; color: #fff; border: 0; border-radius: 6px; padding: .45rem .9rem; cursor: pointer; text-decoration: none; display: inline-block; }
+    button.plain { background: #eaeef2; color: #1f2328; }
+    button.danger { background: #cf222e; }
+    .flash { background: #ddf4ff; border: 1px solid #54aeff; padding: .5rem .8rem; border-radius: 6px; }
+    .status { font-weight: 700; }
+    .done { color: #1a7f37; } .failed { color: #cf222e; } .processing, .received { color: #9a6700; } .ignored { color: #57606a; }
+    .detail td { color: #57606a; font-size: .9rem; border-bottom: 2px solid #d0d7de; }
+    .muted { color: #57606a; }
+    form.inline { display: inline; }
+  </style>
+</head>
+<body>
+{% if user %}
+<nav aria-label="Main">
+  <strong>GitHub Event Bot</strong>
+  <a href="/dashboard">Dashboard</a>
+  <a href="/repos">Repos</a>
+  <a href="/rules">Rules</a>
+  <span class="spacer"></span>
+  <img src="{{ user.avatar_url }}" alt="">
+  <span>{{ user.login }}</span>
+  <form class="inline" method="post" action="/auth/logout"><button class="plain" type="submit">Sign out</button></form>
+</nav>
+{% endif %}
+{% if flash %}<p class="flash" role="status">{{ flash }}</p>{% endif %}
+<main>
+{% block content %}{% endblock %}
+</main>
+</body>
+</html>
